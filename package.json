@@ -1,0 +1,28 @@
+{
+  "name": "injecting",
+  "version": "1.0.1",
+  "description": "a simple javascript dependency injection module",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {
+    "invariant": "^1.0.2",
+    "lodash": "^2.4.1"
+  },
+  "devDependencies": {
+    "mocha": "^2.1.0"
+  },
+  "scripts": {
+    "test": "mocha tests",
+    "test-watch": "mocha -w tests"
+  },
+  "keywords": [
+    "di",
+    "dependency",
+    "injection",
+    "dependency injection"
+  ],
+  "author": "ssnau",
+  "license": "ISC"
+}
