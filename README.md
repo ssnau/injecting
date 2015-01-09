@@ -3,7 +3,6 @@ Injecting
 
 A simple javascript dependency inject processor.
 
-
 Example
 ------
 simple injection:
@@ -65,7 +64,6 @@ invoke a function and automatically inject for its arguments.
 ###get(name)
 
 get a particular injection.
-
 
 License
 -----
