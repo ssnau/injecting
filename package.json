@@ -1,6 +1,6 @@
 {
   "name": "injecting",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "a simple javascript dependency injection module",
   "main": "index.js",
   "directories": {
@@ -23,6 +23,10 @@
     "injection",
     "dependency injection"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://www.npmjs.com/package/injecting"
+  },
   "author": "ssnau",
   "license": "ISC"
 }
