@@ -128,7 +128,7 @@ describe('should deal with infinitive dependency', function() {
         assert.throws(function(){
             app.invoke(function(egg){});
         },
-        'circular dependencies found for egg' 
+        /circular dependencies found for egg/
         );
     });
 });
@@ -137,6 +137,21 @@ describe('should deal with injector', function() {
     var app;
     beforeEach(function(){
         app = injecting();
+    });
+
+    it('should throw error is register injector', function() {
+        assert.throws(function(){
+            app.service('injector', function(){});
+        },
+        /reserve/ 
+        );
+
+        assert.throws(function(){
+            app.constant('injector', function(){});
+        },
+        /reserve/ 
+        );
+
     });
 
     it('should be able to get injector', function() {
