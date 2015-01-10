@@ -1,6 +1,6 @@
 {
   "name": "injecting",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "a simple javascript dependency injection module",
   "main": "index.js",
   "directories": {
@@ -28,5 +28,5 @@
     "url": "https://github.com/ssnau/injecting"
   },
   "author": "ssnau",
-  "license": "ISC"
+  "license": "MIT"
 }

@@ -1,3 +1,4 @@
+
 module.exports = {
     get_func_args: function(func) {
         var string = func.toString();
@@ -5,7 +6,7 @@ module.exports = {
         args = args ? (args[1] ? args[1].trim ().split (/\s*,\s*/) : []) : null;
         return args;
     },
-    singlify: function(func) {
+    singularify: function(func) {
         var called = false;
         var val;
         return function(){

@@ -1,19 +1,12 @@
 var _ = require('lodash');
 var invariant = require('invariant');
 var util = require('./util');
-var singlify = util.singlify;
-
-var CONSTANT = 'constant';
-var SERVICE = 'service';
+var singularify = util.singularify;
 
 function Injecting(name) {
     if (!(this instanceof Injecting)) return new Injecting(name);
-    Injecting._apps[name] = this;
-    this.context = {
-    };
+    this.context = {};
 }
-
-Injecting._apps = {};
 
 _.merge(Injecting.prototype, {
     _checkExist: function (name) {
@@ -24,7 +17,7 @@ _.merge(Injecting.prototype, {
         this._checkExist(name);
         var app = this;
         this.context[name] = {
-            value: singlify(function () {
+            value: singularify(function () {
                 app._loading = app._loading || {};
                 invariant(!app._loading[name], 'circular dependencies found for ' + name);
                 app._loading[name] = true;
@@ -45,7 +38,7 @@ _.merge(Injecting.prototype, {
     constant: function(name, value) {
         this._checkExist(name);
         this.context[name] = {
-            value: singlify(function() {
+            value: singularify(function() {
                 return value;
             })
         };
