@@ -7,11 +7,16 @@ var singularify = util.singularify;
 function Injecting(name) {
     if (!(this instanceof Injecting)) return new Injecting(name);
     this.context = {};
+    this.constant('injector', this);
 }
 
 _.merge(Injecting.prototype, {
     _checkExist: function (name) {
-        invariant(!this.context[name], '%s is already registered', name);
+        var msg = '';
+        if (name === 'injector') {
+            msg = 'injector is reserved, try use other name';
+        }
+        invariant(!this.context[name], '%s is already registered. ' + msg, name);
     },
 
     service: function (name, constructor) {

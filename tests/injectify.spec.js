@@ -132,3 +132,32 @@ describe('should deal with infinitive dependency', function() {
         );
     });
 });
+
+describe('should deal with injector', function() {
+    var app;
+    beforeEach(function(){
+        app = injecting();
+    });
+
+    it('should be able to get injector', function() {
+        app.service('egg', function(injector) {
+            this.hatch = function() { return injector.get('chicken'); };
+            this.name = 'i am a egg';
+        });
+        app.service('chicken', function(injector) {
+            this.produce = function() { return injector.get('egg'); };
+            this.name = 'i am a chicken';
+        });
+
+        app.invoke(function(egg, chicken) {
+            assert.equal(egg.name, 'i am a egg');
+            assert.equal(chicken.name, 'i am a chicken');
+
+            assert.equal(egg.hatch().name, 'i am a chicken');
+            assert.equal(chicken.produce().name, 'i am a egg');
+
+        });
+
+    });
+
+});
