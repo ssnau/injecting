@@ -1,5 +1,6 @@
 var _ = require('lodash');
 var invariant = require('invariant');
+var parameters = require('get-parameter-names');
 var util = require('./util');
 var singularify = util.singularify;
 
@@ -45,7 +46,7 @@ _.merge(Injecting.prototype, {
     },
 
     invoke: function(func, context) {
-        var args = util.get_func_args(func);
+        var args = parameters(func);
         var app = this;
         var actuals = args.map(function(arg) {
             return app.get(arg);

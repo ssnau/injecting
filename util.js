@@ -1,11 +1,10 @@
 
 module.exports = {
-    get_func_args: function(func) {
-        var string = func.toString();
-        var args = string.match(/^\s*function(?:\s+\w*)?\s*\(([\s\S]*?)\)/);
-        args = args ? (args[1] ? args[1].trim ().split (/\s*,\s*/) : []) : null;
-        return args;
-    },
+    /**
+     * cache the result once func is called.
+     * ignore the arguments for arguments always
+     * the same in dependency injection.
+     */
     singularify: function(func) {
         var called = false;
         var val;

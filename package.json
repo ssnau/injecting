@@ -1,12 +1,13 @@
 {
   "name": "injecting",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "a simple javascript dependency injection module",
   "main": "index.js",
   "directories": {
     "test": "tests"
   },
   "dependencies": {
+    "get-parameter-names": "^0.2.0",
     "invariant": "^1.0.2",
     "lodash": "^2.4.1"
   },
