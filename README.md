@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/ssnau/injecting.svg)](https://travis-ci.org/ssnau/injecting)
+[![npm version](https://badge.fury.io/js/injecting.svg)](http://badge.fury.io/js/injecting)
+[![Dependency Status](https://david-dm.org/ssnau/injecting.svg)](https://david-dm.org/ssnau/injecting.svg)
 Injecting
 ---------
 
