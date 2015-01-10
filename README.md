@@ -2,7 +2,7 @@
 [![npm version](https://badge.fury.io/js/injecting.svg)](http://badge.fury.io/js/injecting)
 [![Dependency Status](https://david-dm.org/ssnau/injecting.svg)](https://david-dm.org/ssnau/injecting.svg)
 Injecting
----------
+=========
 
 A simple javascript dependency inject processor.
 
