@@ -141,26 +141,25 @@ describe('should deal with injector', function() {
 
     it('should throw error is register injector', function() {
         assert.throws(function(){
-            app.service('injector', function(){});
+            app.service('$injector', function(){});
         },
         /reserve/ 
         );
 
         assert.throws(function(){
-            app.constant('injector', function(){});
+            app.constant('$injector', function(){});
         },
         /reserve/ 
         );
-
     });
 
     it('should be able to get injector', function() {
-        app.service('egg', function(injector) {
-            this.hatch = function() { return injector.get('chicken'); };
+        app.service('egg', function($injector) {
+            this.hatch = function() { return $injector.get('chicken'); };
             this.name = 'i am a egg';
         });
-        app.service('chicken', function(injector) {
-            this.produce = function() { return injector.get('egg'); };
+        app.service('chicken', function($injector) {
+            this.produce = function() { return $injector.get('egg'); };
             this.name = 'i am a chicken';
         });
 
@@ -170,9 +169,41 @@ describe('should deal with injector', function() {
 
             assert.equal(egg.hatch().name, 'i am a chicken');
             assert.equal(chicken.produce().name, 'i am a egg');
-
         });
 
     });
 
+    it('should use user provider injector name', function () {
+        app = injecting({injectorName: 'container'});
+        app.constant('name', 'jack');
+        app.invoke(function(container) {
+            assert.equal(
+                container.get('name'),
+                'jack'
+            );
+        });
+    });
+});
+
+describe('register should well handle constant and service', function () {
+    var app;
+    beforeEach(function(){
+        app = injecting();
+    });
+
+    it('should register dependency well', function () {
+        app.register('name', 'jack');
+        app.register('place', 'Paris');
+        app.register('person', function(name, place) {
+            this.name = name;
+            this.place = place;
+            this.talk = function () {
+                return "my name is " + this.name + ", and I am in " + this.place;
+            };
+        });
+
+        app.invoke(function(person){
+            assert.equal(person.talk(), "my name is jack, and I am in Paris");
+        });
+    });
 });

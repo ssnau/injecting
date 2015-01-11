@@ -3,20 +3,32 @@ var invariant = require('invariant');
 var parameters = require('get-parameter-names');
 var util = require('./util');
 var singularify = util.singularify;
+var INJECTOR = "$injector";
 
-function Injecting(name) {
-    if (!(this instanceof Injecting)) return new Injecting(name);
+function Injecting(config) {
+    if (!(this instanceof Injecting)) return new Injecting(config);
+    var cfg = config || {};
+    this._injector = cfg.injectorName || INJECTOR;
     this.context = {};
-    this.constant('injector', this);
+    this.constant(this._injector, this);
 }
 
 _.merge(Injecting.prototype, {
     _checkExist: function (name) {
         var msg = '';
-        if (name === 'injector') {
-            msg = 'injector is reserved, try use other name';
+        if (name === this._injector) {
+            msg = this._injector + ' is reserved, try use other name';
         }
         invariant(!this.context[name], '%s is already registered. ' + msg, name);
+    },
+
+    register: function (name, obj) {
+        switch (true) {
+            case _.isFunction(obj):
+                return this.service(name, obj);
+            default:
+                return this.constant(name, obj);
+        }
     },
 
     service: function (name, constructor) {
@@ -61,7 +73,7 @@ _.merge(Injecting.prototype, {
 
     get: function(name) {
         var dep = this.context[name];
-        invariant(dep, '% is not found!', name);
+        invariant(dep, '%s is not found!', name);
         return dep.value();
     }
 });

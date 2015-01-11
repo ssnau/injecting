@@ -10,8 +10,10 @@ Example
 ------
 simple injection:
 ```javascript
-app.constant('name', 'jack');
-app.service('person', function(name) {
+var injecting = require('injecting');
+var app = injecting();
+app.register('name', 'jack');
+app.register('person', function(name) {
     this.name = name;
 });
 
@@ -22,15 +24,17 @@ app.invoke(function(person) {
 
 recursive injection:
 ```javascript
-app.constant('place', 'pacific');
-app.service('cat', function() {
+var injecting = require('injecting');
+var app = injecting();
+app.register('place', 'pacific');
+app.register('cat', function() {
     this.name = "white cat";
 });
-app.service('person', function(cat) {
+app.register('person', function(cat) {
     this.name = "robot";
     this.pet = cat;
 });
-app.service('story', function(place, person){
+app.register('story', function(place, person){
     return {
         place: place,
         person: person.name,
@@ -50,6 +54,8 @@ app.invoke(function(story){
 
 ```
 
+Please refer to the test cases for more examples.
+
 methods
 ------
 ###constant(name, value)
@@ -59,6 +65,10 @@ register a constant as dependency.
 ###service(name, constructor)
 
 register a service as dependency. notice you have to pass a function for it. `injecting` will call the constructor and return the instance the first time you inject. It will return the same instance for later use.
+
+###register(name, obj|fn)
+
+register the argument as dependency. automatically register as constant if the second argument is object|string|number, and register as service if the second argument is function.
 
 ###invoke(fn)
 
