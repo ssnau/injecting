@@ -39,16 +39,20 @@ _.merge(Injecting.prototype, {
                 app._loading = app._loading || {};
                 invariant(!app._loading[name], 'circular dependencies found for ' + name);
                 app._loading[name] = true;
+                var instance;
                 try {
                     var inherit = function(){};
                     inherit.prototype = constructor.prototype;
-                    var instance = new inherit();
-                    instance = app.invoke(constructor, instance) || instance;
+                    instance = new inherit();
+                    instance2 = app.invoke(constructor, instance);
                 } catch(e) {
                     app._loading[name] = false;
-                    throw e;
+                    return Promise.reject(e);
                 }
-                return instance;
+                // if instance2 is emtpy, return the instance instead.
+                return instance2.then(function(i) {
+                  return i || instance;
+                });
             })
         };
     },
@@ -65,16 +69,25 @@ _.merge(Injecting.prototype, {
     invoke: function(func, context) {
         var args = parameters(func);
         var app = this;
-        var actuals = args.map(function(arg) {
-            return app.get(arg);
+        try {
+          var actuals = args.map(function(arg) {
+              return app.get(arg);
+          });
+        } catch (e) {
+          return Promise.reject(e);
+        }
+        return Promise.all(actuals).then(function(args) {
+          return func.apply(context, args);
         });
-        return func.apply(context, actuals);
     },
 
+    /**
+     * make sure it always returns a promise.
+     */
     get: function(name) {
         var dep = this.context[name];
         invariant(dep, '%s is not found!', name);
-        return dep.value();
+        return Promise.resolve(dep.value());
     }
 });
 module.exports = Injecting;

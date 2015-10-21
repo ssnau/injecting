@@ -6,15 +6,16 @@ describe('should inject constant', function() {
     beforeEach(function(){
         app = injecting();
     });
-    it('register a constant', function() {
+    it('register a constant', function(done) {
         app.constant('name', 'injecting');
 
         app.invoke(function(name) {
             assert.equal(name, 'injecting');
+            done();
         });
     });
 
-    it('register 3 constants', function() {
+    it('register 3 constants', function(done) {
         app.constant('name', 'jack');
         app.constant('age', 18);
         app.constant('fruit', 'apple');
@@ -23,6 +24,7 @@ describe('should inject constant', function() {
             assert.equal(name, 'jack');
             assert.equal(age, 18);
             assert.equal(fruit, 'apple');
+            done();
         });
     });
 });
@@ -32,25 +34,36 @@ describe('should inject service', function() {
     beforeEach(function(){
         app = injecting();
     });
-    it('register a service', function() {
+    it('register a service', function(done) {
         var id = 0;
         app.service('pig', function() {
             id++;
             this.id = id;
         });
 
-        var p1, p2;
+        var p1, p2, count = 0, total = 2;
         app.invoke(function(pig) {
+          console.log('the pig is', pig);
             p1 = pig;
             assert.equal(pig.id, 1);
+            count++;
+            next();
         });
 
         app.invoke(function(pig) {
             p2 = pig;
             assert.equal(pig.id, 1);
+            count++;
+            next();
         });
 
-        assert.equal(p1, p2);
+        function next() { 
+          if (count === total) {
+            assert.equal(p1, p2);
+            done(); 
+          }
+        }
+
     });
 
     it('none of the service functions will be called if i dont use them', function(){
@@ -65,14 +78,13 @@ describe('should inject service', function() {
     });
 });
 
-
 describe('should auto mount dependencies', function() {
     var app;
     beforeEach(function(){
         app = injecting();
     });
 
-    it('should inject name when init service', function() {
+    it('should inject name when init service', function(done) {
         app.constant('name', 'jack');
         app.service('person', function(name) {
             this.name = name;
@@ -80,10 +92,11 @@ describe('should auto mount dependencies', function() {
 
         app.invoke(function(person) {
             assert.equal(person.name, 'jack');
+            done();
         });
     });
 
-    it('should inject services recursively', function () {
+    it('should inject services recursively', function (done) {
         app.constant('place', 'pacific');
         app.service('cat', function() {
             this.name = "white cat";
@@ -106,10 +119,10 @@ describe('should auto mount dependencies', function() {
                 person: 'robot',
                 pet: 'white cat'
             });
+            done();
         });
     });
 });
-
 
 describe('should deal with infinitive dependency', function() {
     var app;
@@ -117,7 +130,7 @@ describe('should deal with infinitive dependency', function() {
         app = injecting();
     });
 
-    it('should throw error when infinitive dependency found', function() {
+    it('should throw error when infinitive dependency found', function (done) {
         app.service('egg', function(chicken) {
             return 'something chicken produce';
         });
@@ -125,11 +138,11 @@ describe('should deal with infinitive dependency', function() {
             return 'something egg hatch';
         });
 
-        assert.throws(function(){
-            app.invoke(function(egg){});
-        },
-        /circular dependencies found for egg/
-        );
+        app.invoke(function(egg){}).catch(function(e) {
+          assert.ok(/circular dependencies found for egg/.test(e + ''));
+          done();
+        });
+
     });
 });
 
@@ -153,7 +166,7 @@ describe('should deal with injector', function() {
         );
     });
 
-    it('should be able to get injector', function() {
+    it('should be able to get injector', function(done) {
         app.service('egg', function($injector) {
             this.hatch = function() { return $injector.get('chicken'); };
             this.name = 'i am a egg';
@@ -163,24 +176,32 @@ describe('should deal with injector', function() {
             this.name = 'i am a chicken';
         });
 
-        app.invoke(function(egg, chicken) {
+        app.invoke(function(egg, chicken, $injector) {
             assert.equal(egg.name, 'i am a egg');
             assert.equal(chicken.name, 'i am a chicken');
 
-            assert.equal(egg.hatch().name, 'i am a chicken');
-            assert.equal(chicken.produce().name, 'i am a egg');
-        });
-
+            return Promise
+              .all([egg.hatch(), chicken.produce()])
+              .then(function(hp) {
+                assert.equal(hp[0].name, 'i am a chicken');
+                assert.equal(hp[1].name, 'i am a egg');
+                done();
+            });
+          }).catch(function(e) {
+            console.log(e); 
+          });
     });
 
-    it('should use user provider injector name', function () {
+    it('should use user provider injector name', function (done) {
         app = injecting({injectorName: 'container'});
         app.constant('name', 'jack');
         app.invoke(function(container) {
-            assert.equal(
-                container.get('name'),
-                'jack'
-            );
+          container.get('name').then(function(name) {
+            assert.equal(name, 'jack');
+            done();
+          }).catch(function(e){
+            console.log(e);
+          });
         });
     });
 });
@@ -191,7 +212,7 @@ describe('register should well handle constant and service', function () {
         app = injecting();
     });
 
-    it('should register dependency well', function () {
+    it('should register dependency well', function (done) {
         app.register('name', 'jack');
         app.register('place', 'Paris');
         app.register('person', function(name, place) {
@@ -204,6 +225,44 @@ describe('register should well handle constant and service', function () {
 
         app.invoke(function(person){
             assert.equal(person.talk(), "my name is jack, and I am in Paris");
+            done();
         });
+    });
+});
+
+describe('should deal with promises', function () {
+    var app;
+    beforeEach(function(){
+        app = injecting();
+    });
+
+    it('async function', function (done) {
+        app.register('name', 'jack');
+        app.register('place', 'Paris');
+        app.register('person', function(name, place) {
+            return new Promise(function(resolve){
+              setTimeout(function(){
+                resolve({
+                  name: name,
+                  place: place,
+                  talk: function () {
+                      return "my name is " + this.name + ", and I am in " + this.place;
+                  }
+                });
+              }, 100);
+            });
+        });
+
+        app.invoke(function(person){
+            assert.equal(person.talk(), "my name is jack, and I am in Paris");
+            done();
+        });
+    });
+
+    it('should handle unfound deps', function (done) {
+      app.invoke(function(lady) {}).catch(function(e) {
+        assert.ok(/lady is not found!/.test(e + ''));
+        done();
+      });
     });
 });
