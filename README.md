@@ -4,7 +4,7 @@
 Injecting
 =========
 
-A simple javascript dependency inject processor.
+A simple javascript dependency inject processor, work great with Promise.
 
 Example
 ------
@@ -72,11 +72,11 @@ register the argument as dependency. automatically register as constant if the s
 
 ###invoke(fn)
 
-invoke a function and automatically inject for its arguments.
+invoke a function and automatically inject for its arguments. Expect to return a promise.
 
 ###get(name)
 
-get a particular injection.
+get a particular injection in promise form.
 
 License
 -----
