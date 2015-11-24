@@ -172,6 +172,7 @@ describe('should deal with injector', function() {
             this.name = 'i am a egg';
         });
         app.service('chicken', function($injector) {
+            console.log('making chicken');
             this.produce = function() { return $injector.get('egg'); };
             this.name = 'i am a chicken';
         });
@@ -249,7 +250,7 @@ describe('should deal with promises', function () {
                       return "my name is " + this.name + ", and I am in " + this.place;
                   }
                 });
-              }, 100);
+              }, 10);
             });
         });
 
@@ -273,16 +274,16 @@ describe('should deal with promises', function () {
                       return "my name is " + this.name + ", and I am in " + this.place;
                   }
                 });
-              }, 100);
+              }, 10);
             });
         });
 
         function controller(person) {
           console.log('calling controller with:', person);
-           return Promise.resolve({
-             location: this.location,
-             person: person
-           });
+          return Promise.resolve({
+            location: this.location,
+            person: person
+          });
         }
 
         var context = {location: 'beijing'};
@@ -293,7 +294,6 @@ describe('should deal with promises', function () {
         }).catch(function(e) {
           console.log('get error', e); 
         });
-
     });
 
     it('should handle unfound deps', function (done) {
@@ -322,15 +322,21 @@ describe('should deal with locals', function () {
                       return "my name is " + this.name + ", and I am in " + this.place;
                   }
                 });
-              }, 100);
+              }, 10);
             });
         });
 
         app.invoke(function(person){
             assert.equal(person.talk(), "my name is jack, and I am in Paris");
-            done();
-        }, null, {place: 'Paris'}).catch(function(e){
-          console.log(e);
+            console.log('i am ok');
+        }, null, {place: 'Paris'})
+        .then(function() {
+          return app.invoke(function(person){
+              assert.equal(person.talk(), "my name is jack, and I am in London");
+              done();
+          }, null, {place: 'London'})
+        }).catch(function(e){
+          console.log('error...', e); 
         });
     });
 

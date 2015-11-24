@@ -2,7 +2,7 @@ var _ = require('lodash');
 var invariant = require('invariant');
 var parameters = require('get-parameter-names');
 var util = require('./util');
-var singularify = util.singularify;
+var cachify = util.cachify;
 var INJECTOR = "$injector";
 
 function Injecting(config) {
@@ -10,6 +10,7 @@ function Injecting(config) {
     var cfg = config || {};
     this._injector = cfg.injectorName || INJECTOR;
     this.context = {};
+    this.cache = {};
     this.constant(this._injector, this);
 }
 
@@ -33,9 +34,10 @@ _.merge(Injecting.prototype, {
 
     service: function (name, constructor) {
         this._checkExist(name);
+        this.cache[name] = {}; // generate a namespace
         var app = this;
         this.context[name] = {
-            value: singularify(function (_locals) {
+            value: cachify(function (_locals) {
                 var locals = _locals;
                 app._loading = app._loading || {};
                 invariant(!app._loading[name], 'circular dependencies found for ' + name);
@@ -54,16 +56,14 @@ _.merge(Injecting.prototype, {
                 return instance2.then(function(i) {
                   return i || instance;
                 });
-            })
+            }, this.cache[name])
         };
     },
 
     constant: function(name, value) {
         this._checkExist(name);
         this.context[name] = {
-            value: singularify(function() {
-                return value;
-            })
+            value: function() { return value; }
         };
     },
 
@@ -73,7 +73,6 @@ _.merge(Injecting.prototype, {
         var locals = _locals || {};
         try {
           var actuals = args.map(function(arg) {
-              console.log('mapping arg:', arg, ' with local', locals);
               return locals[arg] || app.get(arg, locals);
           });
         } catch (e) {
