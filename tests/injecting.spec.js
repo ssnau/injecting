@@ -259,6 +259,43 @@ describe('should deal with promises', function () {
         });
     });
 
+    it('invoke async function', function (done) {
+        app.register('name', 'jack');
+        app.register('place', 'Paris');
+        
+        app.register('person', function(name, place) {
+            return new Promise(function(resolve){
+              setTimeout(function(){
+                resolve({
+                  name: name,
+                  place: place,
+                  talk: function () {
+                      return "my name is " + this.name + ", and I am in " + this.place;
+                  }
+                });
+              }, 100);
+            });
+        });
+
+        function controller(person) {
+          console.log('calling controller with:', person);
+           return Promise.resolve({
+             location: this.location,
+             person: person
+           });
+        }
+
+        var context = {location: 'beijing'};
+        app.invoke(controller, context).then(function(scope){
+          assert.equal(scope.location, 'beijing');
+          assert.equal(scope.person.talk(), "my name is jack, and I am in Paris");
+          done();
+        }).catch(function(e) {
+          console.log('get error', e); 
+        });
+
+    });
+
     it('should handle unfound deps', function (done) {
       app.invoke(function(lady) {}).catch(function(e) {
         assert.ok(/lady is not found!/.test(e + ''));
