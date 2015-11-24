@@ -14,10 +14,13 @@ function isObject(o) {
   return !!o && typeof o === 'object';
 }
 
+/*
+ * cannot use object itself as key because of potential memory leak.
+ */
 function stringify(args) {
   var key = "";
   Object.keys(args).forEach(function(k) {
-    if (key.length > 100) return;
+    if (key.length > 50) return;
     var v = args[k];
     if (isHashable(v)) {
       key = key + ":" + String(v) + (typeof v) + ";";
@@ -40,7 +43,8 @@ module.exports = {
         return function() {
             var key = stringify([].slice.call(arguments));
             if (!cache.hasOwnProperty(key)) {
-                // TODO: for different arguments, return different instance.
+                // for different arguments, return different instance.
+                // pass key back for the fn
                 val = func.apply({$key: key}, arguments);;
                 cache[key] = val;
             }
