@@ -10,6 +10,7 @@ module.exports = {
         var val;
         return function(){
             if (!called) {
+                // TODO: for different arguments, return different instance.
                 val = func.apply(null, arguments);;
                 called = true;
             }

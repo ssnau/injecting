@@ -35,7 +35,8 @@ _.merge(Injecting.prototype, {
         this._checkExist(name);
         var app = this;
         this.context[name] = {
-            value: singularify(function () {
+            value: singularify(function (_locals) {
+                var locals = _locals;
                 app._loading = app._loading || {};
                 invariant(!app._loading[name], 'circular dependencies found for ' + name);
                 app._loading[name] = true;
@@ -44,7 +45,7 @@ _.merge(Injecting.prototype, {
                     var inherit = function(){};
                     inherit.prototype = constructor.prototype;
                     instance = new inherit();
-                    instance2 = app.invoke(constructor, instance);
+                    instance2 = app.invoke(constructor, instance, locals);
                 } catch(e) {
                     app._loading[name] = false;
                     return Promise.reject(e);
@@ -66,12 +67,14 @@ _.merge(Injecting.prototype, {
         };
     },
 
-    invoke: function(func, context) {
+    invoke: function(func, context, _locals) {
         var args = parameters(func);
         var app = this;
+        var locals = _locals || {};
         try {
           var actuals = args.map(function(arg) {
-              return app.get(arg);
+              console.log('mapping arg:', arg, ' with local', locals);
+              return locals[arg] || app.get(arg, locals);
           });
         } catch (e) {
           return Promise.reject(e);
@@ -84,10 +87,10 @@ _.merge(Injecting.prototype, {
     /**
      * make sure it always returns a promise.
      */
-    get: function(name) {
+    get: function(name, locals) {
         var dep = this.context[name];
         invariant(dep, '%s is not found!', name);
-        return Promise.resolve(dep.value());
+        return Promise.resolve(dep.value(locals || {}));
     }
 });
 module.exports = Injecting;

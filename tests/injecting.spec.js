@@ -303,3 +303,35 @@ describe('should deal with promises', function () {
       });
     });
 });
+
+describe('should deal with locals', function () {
+    var app;
+    beforeEach(function(){
+        app = injecting();
+    });
+
+    it('call with locals', function (done) {
+        app.register('name', 'jack');
+        app.register('person', function(name, place) {
+            return new Promise(function(resolve){
+              setTimeout(function(){
+                resolve({
+                  name: name,
+                  place: place,
+                  talk: function () {
+                      return "my name is " + this.name + ", and I am in " + this.place;
+                  }
+                });
+              }, 100);
+            });
+        });
+
+        app.invoke(function(person){
+            assert.equal(person.talk(), "my name is jack, and I am in Paris");
+            done();
+        }, null, {place: 'Paris'}).catch(function(e){
+          console.log(e);
+        });
+    });
+
+});
