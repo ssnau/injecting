@@ -5,6 +5,15 @@ var util = require('./util');
 var cachify = util.cachify;
 var INJECTOR = "$injector";
 
+function cleanObj(context, name) {
+  Object
+    .keys(context[name] || {})
+    .forEach(function(key) {
+      obj[key] = null;
+    });
+  context[name] = {};
+}
+
 function Injecting(config) {
     if (!(this instanceof Injecting)) return new Injecting(config);
     var cfg = config || {};
@@ -21,6 +30,14 @@ _.merge(Injecting.prototype, {
             msg = this._injector + ' is reserved, try use other name';
         }
         invariant(!this.context[name], '%s is already registered. ' + msg, name);
+    },
+
+    /**
+     * clean the instance for gc.
+     */
+    destory: function () {
+      cleanObj(this, 'context');
+      cleanObj(this, 'cache');
     },
 
     register: function (name, obj) {
