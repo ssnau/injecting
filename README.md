@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/ssnau/injecting.svg)](https://travis-ci.org/ssnau/injecting)
 [![npm version](https://badge.fury.io/js/injecting.svg)](http://badge.fury.io/js/injecting)
 [![Dependency Status](https://david-dm.org/ssnau/injecting.svg)](https://david-dm.org/ssnau/injecting.svg)
+
 Injecting
 =========
 
@@ -54,27 +55,61 @@ app.invoke(function(story){
 
 ```
 
-Please refer to the test cases for more examples.
+Async Function
+-------
+
+```
+
+var injecting = require('injecting');
+var app = injecting();
+app.register('name', function() {
+  return new Promise(function(resolve) {
+    setTimeout(function () {
+      resolve('jack');
+    }, 1000);
+  });
+});
+
+// will wait for name resolved
+app.register('person', function (name) {
+  return new Promise(function(resolve) {
+    setTimeout(function () {
+      resolve({name: name, age: 10});
+    }, 1000);
+  });
+});
+
+
+app
+  .get('person')
+  .then(function(person) {
+    console.log(person); // should be {name: 'jack', age: 10}
+  });
+```
+
+
+
+Please refer to the [test cases](https://github.com/ssnau/injecting/blob/master/tests/injecting.spec.js) for more examples.
 
 methods
 ------
-###constant(name, value)
+### constant(name, value)
 
 register a constant as dependency.
 
-###service(name, constructor)
+### service(name, constructor)
 
 register a service as dependency. notice you have to pass a function for it. `injecting` will call the constructor and return the instance the first time you inject. It will return the same instance for later use.
 
-###register(name, obj|fn)
+### register(name, obj|fn)
 
 register the argument as dependency. automatically register as constant if the second argument is object|string|number, and register as service if the second argument is function.
 
-###invoke(fn)
+### invoke(fn)
 
 invoke a function and automatically inject for its arguments. Expect to return a promise.
 
-###get(name)
+### get(name)
 
 get a particular injection in promise form.
 
