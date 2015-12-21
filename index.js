@@ -1,4 +1,3 @@
-var _ = require('lodash');
 var invariant = require('invariant');
 var parameters = require('get-parameter-names');
 var util = require('./util');
@@ -23,7 +22,11 @@ function Injecting(config) {
     this.constant(this._injector, this);
 }
 
-_.merge(Injecting.prototype, {
+function merge(a, b) {
+  Object.keys(b).forEach(function(key) { a[key] = b[key] });
+}
+
+merge(Injecting.prototype, {
     _checkExist: function (name) {
         var msg = '';
         if (name === this._injector) {
@@ -42,7 +45,7 @@ _.merge(Injecting.prototype, {
 
     register: function (name, obj) {
         switch (true) {
-            case _.isFunction(obj):
+            case typeof obj === 'function':
                 return this.service(name, obj);
             default:
                 return this.constant(name, obj);
