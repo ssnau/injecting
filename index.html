@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Injecting by ssnau</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Injecting</h1>
+      <h2 class="project-tagline">a simple javascript dependency inject system</h2>
+      <a href="https://github.com/ssnau/injecting" class="btn">View on GitHub</a>
+      <a href="https://github.com/ssnau/injecting/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/ssnau/injecting/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <p><a href="https://travis-ci.org/ssnau/injecting"><img src="https://travis-ci.org/ssnau/injecting.svg" alt="Build Status"></a>
+<a href="http://badge.fury.io/js/injecting"><img src="https://badge.fury.io/js/injecting.svg" alt="npm version"></a>
+<a href="https://david-dm.org/ssnau/injecting.svg"><img src="https://david-dm.org/ssnau/injecting.svg" alt="Dependency Status"></a></p>
+
+<h1>
+<a id="injecting" class="anchor" href="#injecting" aria-hidden="true"><span class="octicon octicon-link"></span></a>Injecting</h1>
+
+<p>A simple javascript dependency inject processor, work great with Promise.</p>
+
+<h2>
+<a id="example" class="anchor" href="#example" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example</h2>
+
+<p>simple injection:</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> injecting <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>injecting<span class="pl-pds">'</span></span>);
+<span class="pl-k">var</span> app <span class="pl-k">=</span> <span class="pl-en">injecting</span>();
+<span class="pl-smi">app</span>.<span class="pl-en">register</span>(<span class="pl-s"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>jack<span class="pl-pds">'</span></span>);
+<span class="pl-smi">app</span>.<span class="pl-en">register</span>(<span class="pl-s"><span class="pl-pds">'</span>person<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">name</span>) {
+    <span class="pl-v">this</span>.<span class="pl-c1">name</span> <span class="pl-k">=</span> name;
+});
+
+<span class="pl-smi">app</span>.<span class="pl-en">invoke</span>(<span class="pl-k">function</span>(<span class="pl-smi">person</span>) {
+    <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-smi">person</span>.<span class="pl-c1">name</span>); <span class="pl-c">// jack</span>
+});</pre></div>
+
+<p>recursive injection:</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> injecting <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>injecting<span class="pl-pds">'</span></span>);
+<span class="pl-k">var</span> app <span class="pl-k">=</span> <span class="pl-en">injecting</span>();
+<span class="pl-smi">app</span>.<span class="pl-en">register</span>(<span class="pl-s"><span class="pl-pds">'</span>place<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>pacific<span class="pl-pds">'</span></span>);
+<span class="pl-smi">app</span>.<span class="pl-en">register</span>(<span class="pl-s"><span class="pl-pds">'</span>cat<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>() {
+    <span class="pl-v">this</span>.<span class="pl-c1">name</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>white cat<span class="pl-pds">"</span></span>;
+});
+<span class="pl-smi">app</span>.<span class="pl-en">register</span>(<span class="pl-s"><span class="pl-pds">'</span>person<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">cat</span>) {
+    <span class="pl-v">this</span>.<span class="pl-c1">name</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>robot<span class="pl-pds">"</span></span>;
+    <span class="pl-v">this</span>.<span class="pl-smi">pet</span> <span class="pl-k">=</span> cat;
+});
+<span class="pl-smi">app</span>.<span class="pl-en">register</span>(<span class="pl-s"><span class="pl-pds">'</span>story<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">place</span>, <span class="pl-smi">person</span>){
+    <span class="pl-k">return</span> {
+        place<span class="pl-k">:</span> place,
+        person<span class="pl-k">:</span> <span class="pl-smi">person</span>.<span class="pl-c1">name</span>,
+        pet<span class="pl-k">:</span> <span class="pl-smi">person</span>.<span class="pl-smi">pet</span>.<span class="pl-c1">name</span>
+    };
+});
+<span class="pl-smi">app</span>.<span class="pl-en">invoke</span>(<span class="pl-k">function</span>(<span class="pl-smi">story</span>){
+    <span class="pl-en">console</span>.<span class="pl-c1">log</span>(story);
+    <span class="pl-c">/* should be</span>
+<span class="pl-c">    {</span>
+<span class="pl-c">        place: 'pacific',</span>
+<span class="pl-c">        person: 'robot',</span>
+<span class="pl-c">        pet: 'white cat'</span>
+<span class="pl-c">    };</span>
+<span class="pl-c">    */</span>
+});
+</pre></div>
+
+<h2>
+<a id="async-function" class="anchor" href="#async-function" aria-hidden="true"><span class="octicon octicon-link"></span></a>Async Function</h2>
+
+<pre><code>
+var injecting = require('injecting');
+var app = injecting();
+app.register('name', function() {
+  return new Promise(function(resolve) {
+    setTimeout(function () {
+      resolve('jack');
+    }, 1000);
+  });
+});
+
+// will wait for name resolved
+app.register('person', function (name) {
+  return new Promise(function(resolve) {
+    setTimeout(function () {
+      resolve({name: name, age: 10});
+    }, 1000);
+  });
+});
+
+
+app
+  .get('person')
+  .then(function(person) {
+    console.log(person); // should be {name: 'jack', age: 10}
+  });
+</code></pre>
+
+<p>Please refer to the <a href="https://github.com/ssnau/injecting/blob/master/tests/injecting.spec.js">test cases</a> for more examples.</p>
+
+<h2>
+<a id="methods" class="anchor" href="#methods" aria-hidden="true"><span class="octicon octicon-link"></span></a>methods</h2>
+
+<h3>
+<a id="constantname-value" class="anchor" href="#constantname-value" aria-hidden="true"><span class="octicon octicon-link"></span></a>constant(name, value)</h3>
+
+<p>register a constant as dependency.</p>
+
+<h3>
+<a id="servicename-constructor" class="anchor" href="#servicename-constructor" aria-hidden="true"><span class="octicon octicon-link"></span></a>service(name, constructor)</h3>
+
+<p>register a service as dependency. notice you have to pass a function for it. <code>injecting</code> will call the constructor and return the instance the first time you inject. It will return the same instance for later use.</p>
+
+<h3>
+<a id="registername-objfn" class="anchor" href="#registername-objfn" aria-hidden="true"><span class="octicon octicon-link"></span></a>register(name, obj|fn)</h3>
+
+<p>register the argument as dependency. automatically register as constant if the second argument is object|string|number, and register as service if the second argument is function.</p>
+
+<h3>
+<a id="invokefn" class="anchor" href="#invokefn" aria-hidden="true"><span class="octicon octicon-link"></span></a>invoke(fn)</h3>
+
+<p>invoke a function and automatically inject for its arguments. Expect to return a promise.</p>
+
+<h3>
+<a id="getname" class="anchor" href="#getname" aria-hidden="true"><span class="octicon octicon-link"></span></a>get(name)</h3>
+
+<p>get a particular injection in promise form.</p>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>MIT</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/ssnau/injecting">Injecting</a> is maintained by <a href="https://github.com/ssnau">ssnau</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+            <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-70092886-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
