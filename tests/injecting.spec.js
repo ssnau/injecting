@@ -1,6 +1,13 @@
 var injecting = require('../');
 var assert = require('assert');
 
+function sleep(ms) {
+  return new Promise(function(resolve) {
+    setTimeout(function(){
+       resolve();
+    }, ms);
+  });
+}
 describe('should inject constant', function() {
     var app;
     beforeEach(function(){
@@ -301,6 +308,33 @@ describe('should deal with promises', function () {
         assert.ok(/lady is not found!/.test(e + ''));
         done();
       });
+    });
+});
+
+describe('should deal with generators', function () {
+    var app;
+    beforeEach(function(){
+        app = injecting();
+    });
+
+    it('generator function', function (done) {
+        app.register('name', 'jack');
+        app.register('place', 'Paris');
+        app.register('person', function *(name, place) {
+          yield sleep(100);
+          return {
+            name: name,
+            place: place,
+            talk: function () {
+                return "my name is " + this.name + ", and I am in " + this.place;
+            }
+          };
+        });
+
+        app.invoke(function(person){
+            assert.equal(person.talk(), "my name is jack, and I am in Paris");
+            done();
+        });
     });
 });
 

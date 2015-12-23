@@ -3,6 +3,7 @@ var parameters = require('get-parameter-names');
 var util = require('./util');
 var cachify = util.cachify;
 var INJECTOR = "$injector";
+var co = require('co');
 
 function cleanObj(context, name) {
   Object
@@ -90,6 +91,7 @@ merge(Injecting.prototype, {
 
     invoke: function(func, context, _locals) {
         var args = parameters(func);
+        if (util.isGeneratorFunction(func)) func = co.wrap(func);
         var app = this;
         var locals = _locals || {};
         try {
