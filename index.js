@@ -1,5 +1,4 @@
 var invariant = require('invariant');
-var parameters = require('get-parameter-names');
 var util = require('./util');
 var cachify = util.cachify;
 var INJECTOR = "$injector";
@@ -90,7 +89,7 @@ merge(Injecting.prototype, {
     },
 
     invoke: function(func, context, _locals) {
-        var args = parameters(func);
+        var args = util.parameters(func);
         if (util.isGeneratorFunction(func)) func = co.wrap(func);
         var app = this;
         var locals = _locals || {};
