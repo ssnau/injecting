@@ -1,4 +1,5 @@
 var injecting = require('../');
+var util = require('../util');
 var assert = require('assert');
 
 function sleep(ms) {
@@ -50,7 +51,6 @@ describe('should inject service', function() {
 
         var p1, p2, count = 0, total = 2;
         app.invoke(function(pig) {
-          console.log('the pig is', pig);
             p1 = pig;
             assert.equal(pig.id, 1);
             count++;
@@ -374,4 +374,46 @@ describe('should deal with locals', function () {
         });
     });
 
+});
+
+describe('perf stastics', function () {
+    var app;
+    beforeEach(function(){
+        app = injecting();
+    });
+
+    it('record perf with 1000 injecting', function (done) {
+      var thousandArr = (new Array(1000).join('x').split('x'));
+      thousandArr.forEach(function (v, i) {
+        app.register('n' + i, i);
+      });
+      var x = function () {
+        console.timeEnd('s');
+        assert.equal(arguments.length, thousandArr.length);
+        done();
+      };
+      x.$injections = thousandArr.map((v, i) => 'n' + i);
+      console.time('s');
+      app.invoke(x);
+    });
+
+    it('record cascade injecting', function (done) {
+      app.register('a', function () {});
+      app.register('b', function (a) {});
+      app.register('c', function (a, b) {});
+      app.register('d', function (a, b, c) {});
+      app.register('e', function (a, b, c, d) {});
+      app.register('f', function (a, b, c, d, e) {});
+      app.register('g', function (a, b, c, d, e, f) {});
+      app.register('h', function (a, b, c, d, e, f, g) {});
+      app.register('x', function (a, b, c, d, e, f, g) {});
+      app.register('y', function (a, b, c, d, e, f, g) {});
+      app.register('z', function (a, b, c, d, e, f, g) {});
+
+      console.time('s2')
+      app.invoke(function (h, a, b, c, d, e, f, g, x, y, z) {
+        console.timeEnd('s2');
+        done();
+      }).catch(console.log);
+    });
 });

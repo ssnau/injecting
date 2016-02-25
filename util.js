@@ -81,7 +81,7 @@ module.exports = {
         }
     },
     parameters: function (fn) {
-      if (fn[PARAM_KEY]) return fn[PARAM_KEY];
+      if (fn[PARAM_KEY] || fn.$injections) return fn[PARAM_KEY] || fn.$injections;
       var p = parameters(fn);
       try {
         Object.defineProperty(fn, PARAM_KEY, {
@@ -94,6 +94,7 @@ module.exports = {
       }
       return p;
     },
+    PARAM_KEY: PARAM_KEY,
     isGenerator: isGenerator,
     isGeneratorFunction: isGeneratorFunction
 };
