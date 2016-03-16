@@ -58,27 +58,28 @@ app.invoke(function(story){
 Async Function
 -------
 
-```
+```javascript
 
 var injecting = require('injecting');
 var app = injecting();
+function sleep(ms) {
+  return new Promise(function(resolve) {
+    setTimeout(function () {
+      resolve('');
+    }, ms);
+  });
+}
+
+// function that return a promise
 app.register('name', function() {
-  return new Promise(function(resolve) {
-    setTimeout(function () {
-      resolve('jack');
-    }, 1000);
-  });
+  return sleep(1000).then(() =>'jack');
 });
 
-// will wait for name resolved
-app.register('person', function (name) {
-  return new Promise(function(resolve) {
-    setTimeout(function () {
-      resolve({name: name, age: 10});
-    }, 1000);
-  });
+// generator as async function and inject `name`
+app.register('person', function* (name) {
+  yield sleep(1000);
+  return {name: name, age: 10};
 });
-
 
 app
   .get('person')
