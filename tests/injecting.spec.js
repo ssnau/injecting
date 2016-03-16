@@ -338,6 +338,44 @@ describe('should deal with generators', function () {
     });
 });
 
+describe('should deal with es6', function () {
+    var app;
+    beforeEach(function(){
+        app = injecting();
+    });
+
+    it('class', function (done) {
+      'use strict';
+        class T {
+          constructor(name, place) {
+            this.name = name;
+            this.place = place;
+          }
+        }
+        app.register('name', 'jack');
+        app.register('place', 'Paris');
+        app.register('t', T);
+
+        app.invoke(function(t){
+            assert.equal(t.name, "jack");
+            assert.equal(t.place, "Paris");
+            done();
+        });
+    });
+
+    it('arrow function', function (done) {
+        'use strict';
+        app.register('name', 'jack');
+        app.register('place', 'Paris');
+        app.register('t', (name, place) => name + '-' + place);
+
+        app.invoke(function(t){
+            assert.equal(t, "jack-Paris");
+            done();
+        });
+    });
+});
+
 describe('should deal with locals', function () {
     var app;
     beforeEach(function(){

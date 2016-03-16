@@ -1,5 +1,6 @@
 var parameters = require('get-parameter-names');
 var PARAM_KEY = "_$$parameters";
+var CLASS_KEY = "_$$isClass";
 /**
  * check if object is hashable
  * or JavaScript Primitive type
@@ -62,6 +63,31 @@ function isGeneratorFunction(obj) {
   return isGenerator(constructor.prototype);
 }
 
+function assignProperty(obj, name, value) {
+  try {
+    Object.defineProperty(obj, name, {
+       value: value,
+       enumerable: false,
+       configurable: true
+    });
+  } catch (e) {
+    // do nothing
+  }
+}
+
+function isClass(func) {
+  if (!func) return false;
+  if (func.hasOwnProperty(CLASS_KEY)) return func[CLASS_KEY];
+  var isClass = typeof func === 'function' 
+    && /^class\s/.test(Function.prototype.toString.call(func));
+  assignProperty(func, CLASS_KEY, isClass);
+  return isClass;
+}
+
+function newApply(Cls, args) {
+    return new (Function.prototype.bind.apply(Cls, [{}].concat(args)));
+}
+
 module.exports = {
     /**
      * cache the result once func is called.
@@ -83,18 +109,12 @@ module.exports = {
     parameters: function (fn) {
       if (fn[PARAM_KEY] || fn.$injections) return fn[PARAM_KEY] || fn.$injections;
       var p = parameters(fn);
-      try {
-        Object.defineProperty(fn, PARAM_KEY, {
-           value: p,
-           enumerable: false,
-           configurable: true
-        });
-      } catch (e) {
-        // do nothing
-      }
+      assignProperty(fn, PARAM_KEY, p);
       return p;
     },
     PARAM_KEY: PARAM_KEY,
     isGenerator: isGenerator,
+    isClass: isClass,
+    newApply: newApply,
     isGeneratorFunction: isGeneratorFunction
 };

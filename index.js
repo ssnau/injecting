@@ -65,18 +65,12 @@ merge(Injecting.prototype, {
                 app._loading[key] = true;
                 var instance;
                 try {
-                    var inherit = function(){};
-                    inherit.prototype = constructor.prototype;
-                    instance = new inherit();
-                    instance2 = app.invoke(constructor, instance, locals);
+                    instance = app.invoke(constructor, instance, locals);
                 } catch(e) {
                     app._loading[name] = false;
                     return Promise.reject(e);
                 }
-                // if instance2 is emtpy, return the instance instead.
-                return instance2.then(function(i) {
-                  return i || instance;
-                });
+                return instance;
             }, this.cache[name])
         };
     },
@@ -90,7 +84,11 @@ merge(Injecting.prototype, {
 
     invoke: function(func, context, _locals) {
         var args = util.parameters(func);
-        if (util.isGeneratorFunction(func)) func = co.wrap(func);
+        var noConstructor = false;
+        if (util.isGeneratorFunction(func)) {
+          func = co.wrap(func);
+          noConstructor = true; // no way to treat generator as constructor
+        }
         var app = this;
         var locals = _locals || {};
         try {
@@ -101,7 +99,8 @@ merge(Injecting.prototype, {
           return Promise.reject(e);
         }
         return Promise.all(actuals).then(function(args) {
-          return func.apply(context, args);
+          // (arrow function|method function) does not have prototype, it is unable to initantiate
+          return (context || noConstructor || !func.prototype) ? func.apply(context, args) : util.newApply(func, args);
         });
     },
 
