@@ -60,9 +60,8 @@ merge(Injecting.prototype, {
             value: cachify(function (_locals) {
                 var locals = _locals;
                 app._loading = app._loading || {};
-                var key = name + this.$key;
-                invariant(!app._loading[key], 'circular dependencies found for ' + name);
-                app._loading[key] = true;
+                invariant(!app._loading[name], 'circular dependencies found for ' + name);
+                app._loading[name] = true;
                 var instance;
                 try {
                     instance = app.invoke(constructor, instance, locals);
@@ -71,7 +70,7 @@ merge(Injecting.prototype, {
                     return Promise.reject(e);
                 }
                 return instance;
-            }, this.cache[name])
+            })
         };
     },
 

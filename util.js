@@ -94,16 +94,15 @@ module.exports = {
      * ignore the arguments for arguments always
      * the same in dependency injection.
      */
-    cachify: function(func, cache) {
+    cachify: function(func) {
+        var cache, called;
         return function() {
-            var key = stringify([].slice.call(arguments));
-            if (!cache.hasOwnProperty(key)) {
-                // for different arguments, return different instance.
-                // pass key back for the fn
-                val = func.apply({$key: key}, arguments);;
-                cache[key] = val;
+            // pass key back for the fn
+            if (!called) {
+              cache = func.apply(null, arguments);
+              called = true;
             }
-            return cache[key];
+            return cache;
         }
     },
     parameters: function (fn) {

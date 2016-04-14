@@ -1,6 +1,7 @@
 var injecting = require('../');
 var util = require('../util');
 var assert = require('assert');
+var co = require('co');
 
 function sleep(ms) {
   return new Promise(function(resolve) {
@@ -82,6 +83,35 @@ describe('should inject service', function() {
             id++;
         });
         assert.equal(id, 0);
+    });
+
+    it('none of the service functions will be called if i dont use them', function(){
+        var id = 0;
+        app.service('person', function(){
+            id++;
+        });
+        app.service('dog', function(){
+            id++;
+        });
+        assert.equal(id, 0);
+    });
+    it('get same injection by different method', function(done){
+        var pid = 0;
+        co(function *(){
+          app.service('jack', function(){
+            this.id = pid;
+            pid++;
+          });
+          app.service('mary', function (jack) {
+            this.hushand = jack;
+          });
+          yield app.invoke(function(jack) {
+            // do nothing
+          });
+          yield app.invoke(function(jack, mary) {
+            assert.equal(0, jack.id);
+          });
+        }).then(() => done())
     });
 });
 
@@ -403,10 +433,11 @@ describe('should deal with locals', function () {
             console.log('i am ok');
         }, null, {place: 'Paris'})
         .then(function() {
+          // if the injection is generated, get from cache and ignore locals
           return app.invoke(function(person){
-              assert.equal(person.talk(), "my name is jack, and I am in London");
+              assert.equal(person.talk(), "my name is jack, and I am in Paris");
               done();
-          }, null, {place: 'London'})
+          }, null, {place: 'London'})  // the London will be ignored.
         }).catch(function(e){
           console.log('error...', e); 
         });
