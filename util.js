@@ -1,4 +1,4 @@
-var parameters = require('get-parameter-names');
+var parameters = require('./get-parameter-names');
 var PARAM_KEY = "_$$parameters";
 var CLASS_KEY = "_$$isClass";
 /**
@@ -15,6 +15,18 @@ function isHashable(o) {
 
 function isObject(o) {
   return !!o && typeof o === 'object';
+}
+
+function get(obj, prop) {
+  var props = typeof prop === 'string' ? prop.split('.') : prop;
+  var a = props[0], b = props[1], c = props[2];
+  try {
+    if (props.length === 1) return obj[a];
+    if (props.length === 2) return obj[a][b];
+    if (props.length === 3) return obj[a][b][c];
+  } catch (e) {
+    return void 0;
+  }
 }
 
 /*
@@ -115,5 +127,6 @@ module.exports = {
     isGenerator: isGenerator,
     isClass: isClass,
     newApply: newApply,
+    get: get,
     isGeneratorFunction: isGeneratorFunction
 };

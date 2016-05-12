@@ -7,9 +7,7 @@
     "test": "tests"
   },
   "dependencies": {
-    "co": "^4.6.0",
-    "get-parameter-names": "^0.2.0",
-    "invariant": "^1.0.2"
+    "co": "^4.6.0"
   },
   "devDependencies": {
     "mocha": "^2.1.0"

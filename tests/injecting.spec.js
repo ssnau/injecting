@@ -174,7 +174,6 @@ describe('should deal with infinitive dependency', function() {
         app.service('chicken', function(egg) {
             return 'something egg hatch';
         });
-
         app.invoke(function(egg){}).catch(function(e) {
           assert.ok(/circular dependencies found for egg/.test(e + ''));
           done();
@@ -243,6 +242,36 @@ describe('should deal with injector', function() {
         });
     });
 });
+
+describe('should deal with duplicate register', function() {
+    var app;
+    beforeEach(function(){
+        app = injecting();
+    });
+
+    it('should throw error when register same name', function() {
+        app.service('joke', function(){ return 'interesting' });
+
+        assert.throws(function(){
+            app.constant('joke', 'stupid');
+        },
+        /already registered/ 
+        );
+    });
+
+    it('should not throw error when register same name with overwritable', function() {
+        app.service('joke', function(){}, {overwritable: true});
+
+        assert.doesNotThrow(function(){
+            app.constant('joke', 'stupid');
+        });
+        return app.invoke(function (joke) {
+          assert.equal(joke, 'stupid');
+        });
+    });
+
+});
+
 
 describe('register should well handle constant and service', function () {
     var app;

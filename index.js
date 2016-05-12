@@ -1,4 +1,3 @@
-var invariant = require('invariant');
 var util = require('./util');
 var cachify = util.cachify;
 var INJECTOR = "$injector";
@@ -13,12 +12,14 @@ function cleanObj(context, name) {
   context[name] = {};
 }
 
+
 function Injecting(config) {
     if (!(this instanceof Injecting)) return new Injecting(config);
     var cfg = config || {};
     this._injector = cfg.injectorName || INJECTOR;
     this.context = {};
     this.cache = {};
+    this.overwritable = {};
     this.constant(this._injector, this);
 }
 
@@ -32,7 +33,8 @@ merge(Injecting.prototype, {
         if (name === this._injector) {
             msg = this._injector + ' is reserved, try use other name';
         }
-        invariant(!this.context[name], '%s is already registered. ' + msg, name);
+        if (this.overwritable['$$' + name]) return;
+        if (this.context.hasOwnProperty(name)) throw new Error(name + ' is already registered. ' + msg);
     },
 
     /**
@@ -43,24 +45,25 @@ merge(Injecting.prototype, {
       cleanObj(this, 'cache');
     },
 
-    register: function (name, obj) {
+    register: function (name, obj, opts) {
         switch (true) {
             case typeof obj === 'function':
-                return this.service(name, obj);
+                return this.service(name, obj, opts);
             default:
-                return this.constant(name, obj);
+                return this.constant(name, obj, opts);
         }
     },
 
-    service: function (name, constructor) {
+    service: function (name, constructor, opts) {
         this._checkExist(name);
+        this.overwritable['$$' + name] = !!util.get(opts, 'overwritable');
         this.cache[name] = {}; // generate a namespace
         var app = this;
         this.context[name] = {
             value: cachify(function (_locals) {
                 var locals = _locals;
                 app._loading = app._loading || {};
-                invariant(!app._loading[name], 'circular dependencies found for ' + name);
+                if (app._loading[name]) throw new Error('circular dependencies found for ' + name);
                 app._loading[name] = true;
                 var instance;
                 try {
@@ -74,8 +77,9 @@ merge(Injecting.prototype, {
         };
     },
 
-    constant: function(name, value) {
+    constant: function (name, value, opts) {
         this._checkExist(name);
+        this.overwritable['$$' + name] = !!util.get(opts, 'overwritable');
         this.context[name] = {
             value: function() { return value; }
         };
@@ -108,7 +112,7 @@ merge(Injecting.prototype, {
      */
     get: function(name, locals) {
         var dep = this.context[name];
-        invariant(dep, '%s is not found!', name);
+        if (!dep) throw new Error(name + ' is not found!');
         return Promise.resolve(dep.value(locals || {}));
     }
 });
