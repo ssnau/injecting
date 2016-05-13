@@ -103,15 +103,15 @@ function newApply(Cls, args) {
 module.exports = {
     /**
      * cache the result once func is called.
-     * ignore the arguments for arguments always
+     * ignore the arguments on cache for arguments always
      * the same in dependency injection.
      */
     cachify: function(func) {
         var cache, called;
-        return function() {
+        return function (a, b, c) {
             // pass key back for the fn
             if (!called) {
-              cache = func.apply(null, arguments);
+              cache = func.apply(this, [a, b, c].slice(0, func.length));
               called = true;
             }
             return cache;

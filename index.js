@@ -103,6 +103,7 @@ merge(Injecting.prototype, {
         }
         return Promise.all(actuals).then(function(args) {
           // (arrow function|method function) does not have prototype, it is unable to initantiate
+          // if context is provided, it must be applied with.
           return (context || noConstructor || !func.prototype) ? func.apply(context, args) : util.newApply(func, args);
         });
     },
