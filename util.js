@@ -17,6 +17,10 @@ function isObject(o) {
   return !!o && typeof o === 'object';
 }
 
+function isArray(obj) {
+  return typeof obj === 'object' && obj.slice && obj.splice && obj.concat;
+}
+
 function get(obj, prop) {
   var props = typeof prop === 'string' ? prop.split('.') : prop;
   var a = props[0], b = props[1], c = props[2];
@@ -100,6 +104,28 @@ function newApply(Cls, args) {
     return new (Function.prototype.bind.apply(Cls, [{}].concat(args)));
 }
 
+function isArrayInjection(arr) {
+  if (!isArray(arr)) return false;
+  return arr
+    .slice(0, arr.length - 1)
+    .every(function (item) {
+      return typeof item === 'string';
+    }) && (typeof arr[arr.length - 1] === 'function');
+}
+
+function warn() {
+  if (getInjection('console')) getInjection('console').warn.apply(console, arguments);
+}
+
+// [ INJECTION START ]
+// **for test reason**
+var INJECTION = {
+  console: (typeof console !== 'undefined') && console
+};
+function getInjection(name)      { return INJECTION[name]; }
+function setInjection(name, obj) { INJECTION[name] = obj; }
+// [ INJECTION END  ]
+
 module.exports = {
     /**
      * cache the result once func is called.
@@ -124,9 +150,13 @@ module.exports = {
       return p;
     },
     PARAM_KEY: PARAM_KEY,
+    isArray: isArray,
+    isArrayInjection: isArrayInjection,
     isGenerator: isGenerator,
     isClass: isClass,
     newApply: newApply,
+    warn: warn,
     get: get,
-    isGeneratorFunction: isGeneratorFunction
+    isGeneratorFunction: isGeneratorFunction,
+    setInjection: setInjection
 };

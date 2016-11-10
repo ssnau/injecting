@@ -1,7 +1,7 @@
 var util = require('./util');
 var cachify = util.cachify;
 var INJECTOR = "$injector";
-var co = require('co');
+var co = require('./async');
 
 function cleanObj(context, name) {
   Object
@@ -46,12 +46,15 @@ merge(Injecting.prototype, {
     },
 
     register: function (name, obj, opts) {
-        switch (true) {
-            case typeof obj === 'function':
-                return this.service(name, obj, opts);
-            default:
-                return this.constant(name, obj, opts);
-        }
+      var isArrayInjection = util.isArrayInjection(obj);
+      if (isArrayInjection) util.warn('you are going to register a array ', obj, 'injecting will auto treat it as a service. If you want to register as constant, call `constant`')
+
+      switch (true) {
+          case (typeof obj === 'function') || isArrayInjection:
+              return this.service(name, obj, opts);
+          default:
+              return this.constant(name, obj, opts);
+      }
     },
 
     service: function (name, constructor, opts) {
@@ -59,6 +62,7 @@ merge(Injecting.prototype, {
         this.overwritable['$$' + name] = !!util.get(opts, 'overwritable');
         this.cache[name] = {}; // generate a namespace
         var app = this;
+        if (opts && opts.injections) constructor.$injections = opts.injections;
         this.context[name] = {
             value: cachify(function (_locals) {
                 var locals = _locals;
@@ -86,6 +90,11 @@ merge(Injecting.prototype, {
     },
 
     invoke: function(func, context, _locals) {
+        if (util.isArray(func)) {
+          var parameters = func.slice(0, func.length - 1);
+          func = func[func.length - 1];
+          func.$injections = parameters;
+        }
         var args = util.parameters(func);
         var noConstructor = false;
         if (util.isGeneratorFunction(func)) {

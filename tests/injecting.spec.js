@@ -1,7 +1,7 @@
 var injecting = require('../');
 var util = require('../util');
 var assert = require('assert');
-var co = require('co');
+var co = require('../async');
 
 function sleep(ms) {
   return new Promise(function(resolve) {
@@ -472,6 +472,58 @@ describe('should deal with locals', function () {
         });
     });
 
+});
+
+
+describe('invoke array and define injections', function () {
+  var app;
+  var warnStr;
+  beforeEach(function(){
+    app = injecting();
+    util.setInjection('console', {
+      warn: function () {
+        warnStr = [].slice.call(arguments).join('')
+      }
+    });
+  });
+  afterEach(function() {
+    util.setInjection('console', console);
+  });
+
+  it('invoke with array', function (done) {
+    app.register('name', 'jack');
+    app.register('age', 20);
+    app.invoke(['name', 'age', function (n, a) {
+      assert.equal(n, 'jack');
+      assert.equal(a, 20);
+      done();
+    }]);
+  });
+
+  it('register with injection', function (done) {
+      app.register('name', 'jack');
+      app.register('age', 20);
+      app.register('person', function (n, a) {
+        return {name: n, age: a};
+      }, {injections: ['name', 'age']});
+      app.invoke(function (person) {
+        assert.deepEqual({name: 'jack', age: 20}, person);
+        done();
+      });
+  });
+
+  it('register with array', function (done) {
+    app.register('name', 'jack');
+    app.register('age', 20);
+    app.register('person', ['name', 'age', function (n, a) {
+      return {name: n, age: a};
+    }]);
+    assert.ok(/you are going to register a array/.test(warnStr));
+    app.invoke(function (person) {
+      assert.deepEqual({name: 'jack', age: 20}, person);
+      done();
+    });
+  });
 });
 
 describe('perf stastics', function () {

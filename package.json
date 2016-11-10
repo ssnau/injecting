@@ -6,9 +6,6 @@
   "directories": {
     "test": "tests"
   },
-  "dependencies": {
-    "co": "^4.6.0"
-  },
   "devDependencies": {
     "mocha": "^2.1.0"
   },

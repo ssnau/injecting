@@ -88,7 +88,37 @@ app
   });
 ```
 
+Anti Minification
+------
 
+The code shows above does not robust enough when our source code is minified. For example:
+
+```
+app.register('person', 'jack');
+app.invoke(function(person) {
+  console.log(person);
+});
+// will be minified as
+app.invoke(function(a) {
+  console.log(a);
+});
+// it will lead to app crush in such case since `a` is not registered.
+```
+
+### Solution
+
+There are several method to avoid minification problem. Look at the code below:
+
+```
+// invoke a function with predefined injections
+app.invoke(['person', 'job', function(p, j) {
+  console.log(p, j);
+});
+// register a dep with predefined injections
+app.register('person', ['name', 'age', function (n, a) {
+  return {name: n, age： a};
+});
+```
 
 Please refer to the [test cases](https://github.com/ssnau/injecting/blob/master/tests/injecting.spec.js) for more examples.
 
