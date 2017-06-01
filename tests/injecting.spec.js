@@ -272,7 +272,6 @@ describe('should deal with duplicate register', function() {
 
 });
 
-
 describe('register should well handle constant and service', function () {
     var app;
     beforeEach(function(){
@@ -435,6 +434,22 @@ describe('should deal with es6', function () {
     });
 });
 
+describe('should deal with scalar values', function () {
+    var app;
+    beforeEach(function(){
+        app = injecting();
+    });
+
+    it('null', function () {
+      return app.invoke(function () {
+        return null;
+      }, {}/* must provide context! */).then(function(value) {
+        assert.equal(value, null);
+      });
+    });
+
+});
+
 describe('should deal with locals', function () {
     var app;
     beforeEach(function(){
@@ -473,7 +488,6 @@ describe('should deal with locals', function () {
     });
 
 });
-
 
 describe('invoke array and define injections', function () {
   var app;
