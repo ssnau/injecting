@@ -448,6 +448,17 @@ describe('should deal with scalar values', function () {
       });
     });
 
+
+    it('null', function () {
+      function f() {
+        return null;
+      }
+      f.noConstructor = true;
+      return app.invoke(f/* do not provide context */).then(function(value) {
+        assert.equal(value, null);
+      });
+    });
+
 });
 
 describe('should deal with locals', function () {

@@ -101,6 +101,9 @@ merge(Injecting.prototype, {
           func = co.wrap(func);
           noConstructor = true; // no way to treat generator as constructor
         }
+        if (func.noConstructor) {
+          noConstructor = true; // if the func as specify noConstructor
+        }
         var app = this;
         var locals = _locals || {};
         try {
