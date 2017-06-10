@@ -108,7 +108,7 @@ merge(Injecting.prototype, {
         try {
           var resolvers = func.injectingResolvers;
           var actuals = args.map(function(arg) {
-            if (resolvers && resolvers[arg] && typeof resolvers[arg] === 'function') return resolvers[arg]();
+            if (resolvers && typeof resolvers[arg] === 'function') return resolvers[arg]();
             return locals[arg] || app.get(arg, locals);
           });
         } catch (e) {

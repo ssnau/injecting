@@ -497,6 +497,22 @@ describe('should deal with locals', function () {
         });
     });
 
+    it('call with injectingResolvers', function () {
+        app.register('name', 'jack');
+        function eat(name, food) {
+          return name + ' is eating ' + food; 
+        }
+        eat.injectingResolvers = {
+          food() {
+            return 'noodle';
+          }
+        }
+
+        return app.invoke(eat, null).then(text => {
+          assert.equal(text, 'jack is eating noodle');
+        });
+    });
+
 });
 
 describe('invoke array and define injections', function () {
