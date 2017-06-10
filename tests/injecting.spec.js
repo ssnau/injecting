@@ -572,20 +572,34 @@ describe('should deal with proxy', function () {
       app = injecting();
   });
 
-  it('invoke after proxy', function () {
+  it('simple proxy', function () {
      app.register('name', 'jack');  
      return app.invoke(injecting.proxy(function (name) {
        assert.equal(name, 'jack');
      }));
   });
 
-  it('invoke after proxy', function () {
+  it('function proxy', function () {
      app.register('name', 'jack');  
      app.register('isMale', () => true);  
      return app.invoke(injecting.proxy(function (name, isMale) {
        assert.equal(name, 'jack');
        assert.equal(isMale, true);
      }));
+  });
+
+  it('generator proxy', function () {
+     let flag = false;
+     app.register('name', 'jack');  
+     app.register('isMale', () => true);  
+     return app.invoke(injecting.proxy(function* (name, isMale) {
+       assert.equal(name, 'jack');
+       yield sleep(100);
+       assert.equal(isMale, true);
+       flag = true;
+     })).then(() => {
+       assert.equal(flag, true);
+     });;
   });
 
 });

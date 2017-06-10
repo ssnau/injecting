@@ -134,6 +134,7 @@ merge(Injecting.prototype, {
 
 Injecting.proxy = function (fn) {
   var args = util.parameters(fn);
+  if (util.isGeneratorFunction(fn)) fn = co.wrap(fn);
   return args.concat(function () {
     return fn.apply({}, arguments);
   });
