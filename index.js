@@ -7,11 +7,10 @@ function cleanObj(context, name) {
   Object
     .keys(context[name] || {})
     .forEach(function(key) {
-      obj[key] = null;
+      context[key] = null;
     });
   context[name] = {};
 }
-
 
 function Injecting(config) {
     if (!(this instanceof Injecting)) return new Injecting(config);
@@ -107,16 +106,19 @@ merge(Injecting.prototype, {
         var app = this;
         var locals = _locals || {};
         try {
+          var resolvers = func.injectingResolvers;
           var actuals = args.map(function(arg) {
-              return locals[arg] || app.get(arg, locals);
+            if (resolvers && resolvers[arg] && typeof resolvers[arg] === 'function') return resolvers[arg]();
+            return locals[arg] || app.get(arg, locals);
           });
         } catch (e) {
           return Promise.reject(e);
         }
+        var hasContext = (context !== undefined);
         return Promise.all(actuals).then(function(args) {
           // (arrow function|method function) does not have prototype, it is unable to initantiate
           // if context is provided, it must be applied with.
-          return (context || noConstructor || !func.prototype) ? func.apply(context, args) : util.newApply(func, args);
+          return (hasContext || noConstructor || !func.prototype) ? func.apply(context, args) : util.newApply(func, args);
         });
     },
 
@@ -129,5 +131,13 @@ merge(Injecting.prototype, {
         return Promise.resolve(dep.value(locals || {}));
     }
 });
+
+Injecting.proxy = function (fn) {
+  var args = util.parameters(fn);
+  return args.concat(function () {
+    return fn.apply({}, arguments);
+  });
+};
+
 module.exports = Injecting;
 

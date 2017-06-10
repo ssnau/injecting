@@ -448,7 +448,6 @@ describe('should deal with scalar values', function () {
       });
     });
 
-
     it('null', function () {
       function f() {
         return null;
@@ -549,6 +548,30 @@ describe('invoke array and define injections', function () {
       done();
     });
   });
+});
+
+describe('should deal with proxy', function () {
+  var app;
+  beforeEach(function(){
+      app = injecting();
+  });
+
+  it('invoke after proxy', function () {
+     app.register('name', 'jack');  
+     return app.invoke(injecting.proxy(function (name) {
+       assert.equal(name, 'jack');
+     }));
+  });
+
+  it('invoke after proxy', function () {
+     app.register('name', 'jack');  
+     app.register('isMale', () => true);  
+     return app.invoke(injecting.proxy(function (name, isMale) {
+       assert.equal(name, 'jack');
+       assert.equal(isMale, true);
+     }));
+  });
+
 });
 
 describe('perf stastics', function () {
