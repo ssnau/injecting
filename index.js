@@ -132,12 +132,15 @@ merge(Injecting.prototype, {
     }
 });
 
+// wrap fn to protect from modifying the original one
+function wrap(fn) {
+  return function () { return fn.apply(this, arguments) }
+}
+
 Injecting.proxy = function (fn) {
   var args = util.parameters(fn);
-  if (util.isGeneratorFunction(fn)) fn = co.wrap(fn);
-  return args.concat(function () {
-    return fn.apply({}, arguments);
-  });
+  const wfn = util.isGeneratorFunction(fn) ?  co.wrap(fn) : wrap(fn);
+  return args.concat(wfn);
 };
 
 module.exports = Injecting;
