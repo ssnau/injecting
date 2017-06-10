@@ -1,6 +1,6 @@
 {
   "name": "injecting",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "a simple javascript dependency injection module",
   "main": "index.js",
   "directories": {
