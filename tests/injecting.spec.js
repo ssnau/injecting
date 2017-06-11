@@ -2,6 +2,7 @@ var injecting = require('../');
 var util = require('../util');
 var assert = require('assert');
 var co = require('../async');
+var getParameterNames = require('../get-parameter-names');
 
 function sleep(ms) {
   return new Promise(function(resolve) {
@@ -10,6 +11,25 @@ function sleep(ms) {
     }, ms);
   });
 }
+
+describe('should parse correct parameter', () => {
+    it('simple function', () => {
+       assert.deepEqual(getParameterNames(function(name) {}), ['name']);
+       assert.deepEqual(getParameterNames((name) => {}), ['name']);
+       assert.deepEqual(getParameterNames((name, ff) => {}), ['name', 'ff']);
+    });
+
+    it('arrow function without parenthesis', () => {
+       assert.deepEqual(getParameterNames(
+         context => console.log(vv)
+       ), ['context']);
+
+       assert.deepEqual(getParameterNames(
+         context => ff => console.log(vv)
+       ), ['context']);
+    });
+});
+
 describe('should inject constant', function() {
     var app;
     beforeEach(function(){
