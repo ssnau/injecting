@@ -1,3 +1,4 @@
+'use strict';
 var injecting = require('../');
 var util = require('../util');
 var assert = require('assert');
