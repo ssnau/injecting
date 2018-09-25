@@ -10,7 +10,8 @@ function getParameterNames(fn) {
   var parenIndex = code.indexOf('(');
   if (!fn.prototype && arrowIndex !== -1 &&
      (parenIndex > arrowIndex || parenIndex === -1) ) {
-    result = [code.slice(0, arrowIndex).trim()];
+      var arrowParams = code.slice(0, arrowIndex).trim();
+      result = [arrowParams.indexOf(' ') === -1 ? arrowParams : arrowParams.split(' ')[1]];
   }
 
   return result === null
