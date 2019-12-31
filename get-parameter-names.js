@@ -7,6 +7,7 @@ function extract (c) {
     .match(/([^\s,]+)/g)
   return result === null ? [] : result
 }
+
 function getParameterNames (fn) {
   var code = fn.toString().replace(COMMENTS, '')
   var result = extract(code)
@@ -28,7 +29,5 @@ function getParameterNames (fn) {
 
   return result
 }
-
-getParameterNames(x => y => 1)
 
 module.exports = getParameterNames
