@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/ssnau/injecting.svg)](https://travis-ci.org/ssnau/injecting)
 [![npm version](https://badge.fury.io/js/injecting.svg)](http://badge.fury.io/js/injecting)
 [![Dependency Status](https://david-dm.org/ssnau/injecting.svg)](https://david-dm.org/ssnau/injecting.svg)
+[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 Injecting
 =========
@@ -93,7 +94,7 @@ Anti Minification
 
 The code shows above does not robust enough when our source code is minified. For example:
 
-```
+```javascript
 app.register('person', 'jack');
 app.invoke(function(person) {
   console.log(person);
@@ -109,7 +110,7 @@ app.invoke(function(a) {
 
 There are several method to avoid minification problem. Look at the code below:
 
-```
+```javascript
 // invoke a function with predefined injections
 app.invoke(['person', 'job', function(p, j) {
   console.log(p, j);
