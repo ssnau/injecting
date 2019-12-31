@@ -1,56 +1,21 @@
-var parameters = require('./get-parameter-names');
-var PARAM_KEY = "_$$parameters";
-var CLASS_KEY = "_$$isClass";
-/**
- * check if object is hashable
- * or JavaScript Primitive type
- **/
-function isHashable(o) {
-  var type = typeof o;
-  // hack for typeof null === "object"
-  if (o === null) return true;
-  // check for null because future ES spec requires typeof null === 'null'
-  return /null|undefined|boolean|string|number/.test(type);
+var parameters = require('./get-parameter-names')
+var PARAM_KEY = '_$$parameters'
+var CLASS_KEY = '_$$isClass'
+
+function isArray (obj) {
+  return typeof obj === 'object' && obj.slice && obj.splice && obj.concat
 }
 
-function isObject(o) {
-  return !!o && typeof o === 'object';
-}
-
-function isArray(obj) {
-  return typeof obj === 'object' && obj.slice && obj.splice && obj.concat;
-}
-
-function get(obj, prop) {
-  var props = typeof prop === 'string' ? prop.split('.') : prop;
-  var a = props[0], b = props[1], c = props[2];
+function get (obj, prop) {
+  var props = typeof prop === 'string' ? prop.split('.') : prop
+  var a = props[0]; var b = props[1]; var c = props[2]
   try {
-    if (props.length === 1) return obj[a];
-    if (props.length === 2) return obj[a][b];
-    if (props.length === 3) return obj[a][b][c];
+    if (props.length === 1) return obj[a]
+    if (props.length === 2) return obj[a][b]
+    if (props.length === 3) return obj[a][b][c]
   } catch (e) {
-    return void 0;
+    return undefined
   }
-}
-
-/*
- * cannot use object itself as key because of potential memory leak.
- */
-function stringify(args) {
-  var key = "";
-  Object.keys(args).forEach(function(k) {
-    if (key.length > 50) return;
-    var v = args[k];
-    if (isHashable(v)) {
-      key = key + ":" + String(v) + (typeof v) + ";";
-      return;
-    }
-    if (isObject(v)) {
-      key = key + ":" + stringify(v) + ";";
-      return;
-    }
-  });
-  return key || '__empty$$locals__';
 }
 
 /**
@@ -61,8 +26,8 @@ function stringify(args) {
  * @api private
  */
 
-function isGenerator(obj) {
-  return 'function' == typeof obj.next && 'function' == typeof obj.throw;
+function isGenerator (obj) {
+  return typeof obj.next === 'function' && typeof obj.throw === 'function'
 }
 
 /**
@@ -72,91 +37,95 @@ function isGenerator(obj) {
  * @return {Boolean}
  * @api private
  */
-function isGeneratorFunction(obj) {
-  var constructor = obj.constructor;
-  if (!constructor) return false;
-  if ('GeneratorFunction' === constructor.name || 'GeneratorFunction' === constructor.displayName) return true;
-  return isGenerator(constructor.prototype);
+function isGeneratorFunction (obj) {
+  var constructor = obj.constructor
+  if (!constructor) return false
+  if (constructor.name === 'GeneratorFunction' || constructor.displayName === 'GeneratorFunction') return true
+  return isGenerator(constructor.prototype)
 }
 
-function assignProperty(obj, name, value) {
+function assignProperty (obj, name, value) {
   try {
     Object.defineProperty(obj, name, {
-       value: value,
-       enumerable: false,
-       configurable: true
-    });
+      value: value,
+      enumerable: false,
+      configurable: true
+    })
   } catch (e) {
     // do nothing
   }
 }
 
-function isClass(func) {
-  if (!func) return false;
-  if (func.hasOwnProperty(CLASS_KEY)) return func[CLASS_KEY];
-  var isClass = typeof func === 'function' 
-    && /^class\s/.test(Function.prototype.toString.call(func));
-  assignProperty(func, CLASS_KEY, isClass);
-  return isClass;
+function hasOwnProp (obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop)
 }
 
-function newApply(Cls, args) {
-    return new (Function.prototype.bind.apply(Cls, [{}].concat(args)));
+function isClass (func) {
+  if (!func) return false
+  if (hasOwnProp(func, CLASS_KEY)) return func[CLASS_KEY]
+  var isClass = typeof func === 'function' &&
+    /^class\s/.test(Function.prototype.toString.call(func))
+  assignProperty(func, CLASS_KEY, isClass)
+  return isClass
 }
 
-function isArrayInjection(arr) {
-  if (!isArray(arr)) return false;
+function newApply (Cls, args) {
+  return new (Function.prototype.bind.apply(Cls, [{}].concat(args)))()
+}
+
+function isArrayInjection (arr) {
+  if (!isArray(arr)) return false
   return arr
     .slice(0, arr.length - 1)
     .every(function (item) {
-      return typeof item === 'string';
-    }) && (typeof arr[arr.length - 1] === 'function');
+      return typeof item === 'string'
+    }) && (typeof arr[arr.length - 1] === 'function')
 }
 
-function warn() {
-  if (getInjection('console')) getInjection('console').warn.apply(console, arguments);
+function warn () {
+  if (getInjection('console')) getInjection('console').warn.apply(console, arguments)
 }
 
 // [ INJECTION START ]
 // **for test reason**
 var INJECTION = {
   console: (typeof console !== 'undefined') && console
-};
-function getInjection(name)      { return INJECTION[name]; }
-function setInjection(name, obj) { INJECTION[name] = obj; }
+}
+function getInjection (name) { return INJECTION[name] }
+function setInjection (name, obj) { INJECTION[name] = obj }
 // [ INJECTION END  ]
 
 module.exports = {
-    /**
+  /**
      * cache the result once func is called.
      * ignore the arguments on cache for arguments always
      * the same in dependency injection.
      */
-    cachify: function(func) {
-        var cache, called;
-        return function (a, b, c) {
-            // pass key back for the fn
-            if (!called) {
-              cache = func.apply(this, [a, b, c].slice(0, func.length));
-              called = true;
-            }
-            return cache;
-        }
-    },
-    parameters: function (fn) {
-      if (fn[PARAM_KEY] || fn.$injections) return fn[PARAM_KEY] || fn.$injections;
-      var p = parameters(fn);
-      assignProperty(fn, PARAM_KEY, p);
-      return p;
-    },
-    PARAM_KEY: PARAM_KEY,
-    isArray: isArray,
-    isArrayInjection: isArrayInjection,
-    isGenerator: isGenerator,
-    isClass: isClass,
-    newApply: newApply,
-    warn: warn,
-    get: get,
-    isGeneratorFunction: isGeneratorFunction,
-    setInjection: setInjection
-};
+  cachify: function (func) {
+    var cache, called
+    return function (a, b, c) {
+      // pass key back for the fn
+      if (!called) {
+        cache = func.apply(this, [a, b, c].slice(0, func.length))
+        called = true
+      }
+      return cache
+    }
+  },
+  parameters: function (fn) {
+    if (fn[PARAM_KEY] || fn.$injections) return fn[PARAM_KEY] || fn.$injections
+    var p = parameters(fn)
+    assignProperty(fn, PARAM_KEY, p)
+    return p
+  },
+  PARAM_KEY: PARAM_KEY,
+  isArray: isArray,
+  isArrayInjection: isArrayInjection,
+  isGenerator: isGenerator,
+  isClass: isClass,
+  newApply: newApply,
+  warn: warn,
+  get: get,
+  isGeneratorFunction: isGeneratorFunction,
+  setInjection: setInjection
+}

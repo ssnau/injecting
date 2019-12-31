@@ -7,10 +7,12 @@
     "test": "tests"
   },
   "devDependencies": {
-    "mocha": "^2.1.0"
+    "mocha": "^2.1.0",
+    "standard": "*"
   },
   "scripts": {
-    "test": "mocha tests",
+    "test": "standard && mocha tests",
+    "fix": "standard --fix",
     "test-watch": "mocha -w tests"
   },
   "keywords": [
