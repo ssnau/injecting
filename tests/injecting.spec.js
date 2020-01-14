@@ -658,6 +658,41 @@ describe('should deal with proxy', function () {
   })
 })
 
+describe('class with INJECTIONS', () => {
+  var app
+  beforeEach(() => {
+    app = injecting()
+  })
+
+  it('should inject members', async () => {
+    class TestApp {
+      hello () {
+        return { name: this.name, age: this.age, food: this.food.name }
+      }
+    }
+
+    TestApp.INJECTIONS = {
+      name: 'my/name',
+      age: 'my/age',
+      food: 'my/food'
+    }
+
+    app.constant('my/name', 'jack')
+    app.constant('my/age', 10)
+    app.service('my/food', () => {
+      return { name: 'fish' }
+    })
+
+    const testApp = await app.invoke(TestApp)
+
+    assert.deepStrictEqual(testApp.hello(), {
+      name: 'jack',
+      age: 10,
+      food: 'fish'
+    })
+  })
+})
+
 describe('perf stastics', function () {
   var app
   beforeEach(function () {

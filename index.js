@@ -123,6 +123,25 @@ merge(Injecting.prototype, {
       // (arrow function|method function) does not have prototype, it is unable to initantiate
       // if context is provided, it must be applied with.
       return (hasContext || noConstructor || !func.prototype) ? func.apply(context, args) : util.newApply(func, args)
+    }).then(function (ist) {
+      var map = func.INJECTIONS
+      if (!map) return ist
+      var keys = Object.keys(map)
+      var values = []
+      keys.forEach(function (k) {
+        values.push(map[k])
+      })
+      // copy from above
+      var pItems = values.map(function (arg) {
+        if (resolvers && typeof resolvers[arg] === 'function') return resolvers[arg]()
+        return locals[arg] || app.get(arg, locals)
+      })
+      return Promise.all(pItems).then(function (args) {
+        for (var i = 0; i < args.length; i++) {
+          ist[keys[i]] = args[i]
+        }
+        return ist
+      })
     })
   },
 
