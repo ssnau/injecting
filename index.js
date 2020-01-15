@@ -111,9 +111,25 @@ merge(Injecting.prototype, {
 
     var locals = _locals || {}
     var resolvers = func.injectingResolvers
-    var resolveToItems = function (values) {
+    var actuals = []
+    // handle injected parameters
+    // looks hard to do refactor since I need to return Promise.reject here.
+    try {
+      actuals = args.map(function (arg) {
+        if (resolvers && typeof resolvers[arg] === 'function') return resolvers[arg]()
+        return locals[arg] || app.get(arg, locals)
+      })
+    } catch (e) {
+      return Promise.reject(e)
+    }
+
+    // handle injected members
+    var injections = []
+    var keys = Object.keys(func.INJECTIONS || {})
+    if (keys.length) {
+      var values = keys.map(function (k) { return func.INJECTIONS[k] })
       try {
-        return values.map(function (arg) {
+        injections = values.map(function (arg) {
           if (resolvers && typeof resolvers[arg] === 'function') return resolvers[arg]()
           return locals[arg] || app.get(arg, locals)
         })
@@ -121,29 +137,16 @@ merge(Injecting.prototype, {
         return Promise.reject(e)
       }
     }
-    var actuals = resolveToItems(args)
+
     var hasContext = (context !== undefined)
     return Promise.all(actuals).then(function (args) {
-      return (function () {
-        var c = context || {}
-        var map = func.INJECTIONS
-        if (!map) return Promise.resolve(null)
-        var keys = Object.keys(map)
-        var values = []
-        keys.forEach(function (k) { values.push(map[k]) })
-        return Promise.all(resolveToItems(values)).then(function (args) {
-          for (var i = 0; i < args.length; i++) {
-            c[keys[i]] = args[i]
-          }
-          return c
-        })
-      })().then(function (c) {
+      return Promise.all(injections).then(function (injects) {
         // (arrow function|method function) does not have prototype, it is unable to initantiate
         // if context is provided, it must be applied with.
-        const ist = (hasContext || noConstructor || !func.prototype) ? func.apply(context, args) : util.newApply(func, args, c)
-        Object.keys(c || {}).forEach(function (k) {
-          ist[k] = c[k]
-        })
+        const ist = (hasContext || noConstructor || !func.prototype) ? func.apply(context, args) : util.newApply(func, args)
+        for (var i = 0; i < injects.length; i++) {
+          ist[keys[i]] = injects[i]
+        }
         return ist
       })
     })
