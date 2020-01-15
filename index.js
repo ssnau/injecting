@@ -108,38 +108,42 @@ merge(Injecting.prototype, {
       noConstructor = true // if the func as specify noConstructor
     }
     var app = this
+
     var locals = _locals || {}
-    try {
-      var resolvers = func.injectingResolvers
-      var actuals = args.map(function (arg) {
-        if (resolvers && typeof resolvers[arg] === 'function') return resolvers[arg]()
-        return locals[arg] || app.get(arg, locals)
-      })
-    } catch (e) {
-      return Promise.reject(e)
+    var resolvers = func.injectingResolvers
+    var resolveToItems = function (values) {
+      try {
+        return values.map(function (arg) {
+          if (resolvers && typeof resolvers[arg] === 'function') return resolvers[arg]()
+          return locals[arg] || app.get(arg, locals)
+        })
+      } catch (e) {
+        return Promise.reject(e)
+      }
     }
+    var actuals = resolveToItems(args)
     var hasContext = (context !== undefined)
     return Promise.all(actuals).then(function (args) {
-      // (arrow function|method function) does not have prototype, it is unable to initantiate
-      // if context is provided, it must be applied with.
-      return (hasContext || noConstructor || !func.prototype) ? func.apply(context, args) : util.newApply(func, args)
-    }).then(function (ist) {
-      var map = func.INJECTIONS
-      if (!map) return ist
-      var keys = Object.keys(map)
-      var values = []
-      keys.forEach(function (k) {
-        values.push(map[k])
-      })
-      // copy from above
-      var pItems = values.map(function (arg) {
-        if (resolvers && typeof resolvers[arg] === 'function') return resolvers[arg]()
-        return locals[arg] || app.get(arg, locals)
-      })
-      return Promise.all(pItems).then(function (args) {
-        for (var i = 0; i < args.length; i++) {
-          ist[keys[i]] = args[i]
-        }
+      return (function () {
+        var c = context || {}
+        var map = func.INJECTIONS
+        if (!map) return Promise.resolve(null)
+        var keys = Object.keys(map)
+        var values = []
+        keys.forEach(function (k) { values.push(map[k]) })
+        return Promise.all(resolveToItems(values)).then(function (args) {
+          for (var i = 0; i < args.length; i++) {
+            c[keys[i]] = args[i]
+          }
+          return c
+        })
+      })().then(function (c) {
+        // (arrow function|method function) does not have prototype, it is unable to initantiate
+        // if context is provided, it must be applied with.
+        const ist = (hasContext || noConstructor || !func.prototype) ? func.apply(context, args) : util.newApply(func, args, c)
+        Object.keys(c || {}).forEach(function (k) {
+          ist[k] = c[k]
+        })
         return ist
       })
     })

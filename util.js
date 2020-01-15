@@ -69,8 +69,9 @@ function isClass (func) {
   return isClass
 }
 
-function newApply (Cls, args) {
-  return new (Function.prototype.bind.apply(Cls, [{}].concat(args)))()
+function newApply (Cls, args, context) {
+  const t = new (Function.prototype.bind.apply(Cls, [context || {}].concat(args)))()
+  return t
 }
 
 function isArrayInjection (arr) {
