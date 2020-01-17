@@ -124,12 +124,12 @@ merge(Injecting.prototype, {
     }
 
     // handle injected members
-    var injections = []
+    var injectionMembers = []
     var keys = Object.keys(func.INJECTIONS || {})
     if (keys.length) {
       var values = keys.map(function (k) { return func.INJECTIONS[k] })
       try {
-        injections = values.map(function (arg) {
+        injectionMembers = values.map(function (arg) {
           if (resolvers && typeof resolvers[arg] === 'function') return resolvers[arg]()
           return locals[arg] || app.get(arg, locals)
         })
@@ -140,12 +140,12 @@ merge(Injecting.prototype, {
 
     var hasContext = (context !== undefined)
     return Promise.all(actuals).then(function (args) {
-      return Promise.all(injections).then(function (injects) {
+      return Promise.all(injectionMembers).then(function (members) {
         // (arrow function|method function) does not have prototype, it is unable to initantiate
         // if context is provided, it must be applied with.
         const ist = (hasContext || noConstructor || !func.prototype) ? func.apply(context, args) : util.newApply(func, args)
-        for (var i = 0; i < injects.length; i++) {
-          ist[keys[i]] = injects[i]
+        for (var i = 0; i < members.length; i++) {
+          ist[keys[i]] = members[i]
         }
         return ist
       })
