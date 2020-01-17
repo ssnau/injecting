@@ -1,3 +1,4 @@
+// notice: for backward compatible, write code in es5 grammar
 var util = require('./util')
 var cachify = util.cachify
 var INJECTOR = '$injector'
@@ -143,7 +144,7 @@ merge(Injecting.prototype, {
       return Promise.all(injectionMembers).then(function (members) {
         // (arrow function|method function) does not have prototype, it is unable to initantiate
         // if context is provided, it must be applied with.
-        const ist = (hasContext || noConstructor || !func.prototype) ? func.apply(context, args) : util.newApply(func, args)
+        var ist = (hasContext || noConstructor || !func.prototype) ? func.apply(context, args) : util.newApply(func, args)
         for (var i = 0; i < members.length; i++) {
           ist[keys[i]] = members[i]
         }
@@ -169,7 +170,7 @@ function wrap (fn) {
 
 Injecting.proxy = function (fn) {
   var args = util.parameters(fn)
-  const wfn = util.isGeneratorFunction(fn) ? co.wrap(fn) : wrap(fn)
+  var wfn = util.isGeneratorFunction(fn) ? co.wrap(fn) : wrap(fn)
   return args.concat(wfn)
 }
 
