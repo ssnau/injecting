@@ -148,6 +148,7 @@ merge(Injecting.prototype, {
         for (var i = 0; i < members.length; i++) {
           ist[keys[i]] = members[i]
         }
+        if (ist && ist._constructor) return Promise.resolve(ist._constructor()).then(function () { return ist })
         return ist
       })
     })
@@ -157,6 +158,12 @@ merge(Injecting.prototype, {
      * make sure it always returns a promise.
      */
   get: function (name, locals) {
+    var me = this
+    if (util.isArray(name)) {
+      return Promise.all(name.map(function (n) {
+        return me.get(n, locals)
+      }))
+    }
     var dep = this.context[name]
     if (!dep) throw new Error(name + ' is not found!')
     return Promise.resolve(dep.value(locals || {}))

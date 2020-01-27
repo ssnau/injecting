@@ -39,7 +39,7 @@ describe('should parse correct parameter', () => {
     ), [])
   })
 
-  it('class with constructor', () => {
+  it('class with constructor', async () => {
     class TestApp {
       constructor (name, age) {
         this.name = name
@@ -55,9 +55,19 @@ describe('should parse correct parameter', () => {
         this.name = name
         this.age = age
       }
+
+      _constructor () {
+        this.hasRunDotConstructor = true
+      }
     }
     assert.deepStrictEqual(getParameterNames(TestApp), ['name', 'age'])
     assert.deepStrictEqual(getParameterNames(TestApp2), ['name', 'age'])
+    const app = injecting()
+    app.constant('name', 'jack')
+    app.constant('age', 10)
+    const testApp = await app.invoke(TestApp2)
+    assert.strictEqual(testApp.name, 'jack')
+    assert.strictEqual(testApp.hasRunDotConstructor, true)
   })
 
   it('class without constructor', () => {
@@ -690,6 +700,22 @@ describe('class with INJECTIONS', () => {
       age: 10,
       food: 'fish'
     })
+  })
+})
+
+describe('get fn', () => {
+  var app
+  beforeEach(() => {
+    app = injecting()
+  })
+
+  it('should handle get with array', async () => {
+    app.constant('name', 'jack')
+    app.constant('age', 10)
+
+    const [name, age] = await app.get(['name', 'age'])
+    assert.strictEqual(name, 'jack')
+    assert.strictEqual(age, 10)
   })
 })
 
