@@ -686,6 +686,7 @@ describe('class with INJECTIONS', () => {
       age: 'my/age',
       food: 'my/food'
     }
+    TestApp.INJECTING_NAME = 'the-test-app'
 
     app.constant('my/name', 'jack')
     app.constant('my/age', 10)
@@ -693,9 +694,24 @@ describe('class with INJECTIONS', () => {
       return { name: 'fish' }
     })
 
+    app.service(TestApp.INJECTING_NAME, TestApp)
     const testApp = await app.invoke(TestApp)
-
     assert.deepStrictEqual(testApp.hello(), {
+      name: 'jack',
+      age: 10,
+      food: 'fish'
+    })
+    class TestApp2 {
+      getTestApp () {
+        return this.testApp
+      }
+    };
+    // elegant declear injection and implicate type
+    TestApp2.INJECTIONS = {
+      testApp: TestApp
+    }
+    const testApp2 = await app.invoke(TestApp2)
+    assert.deepStrictEqual(testApp2.getTestApp().hello(), {
       name: 'jack',
       age: 10,
       food: 'fish'

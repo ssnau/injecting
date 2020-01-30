@@ -130,7 +130,8 @@ merge(Injecting.prototype, {
     if (keys.length) {
       var values = keys.map(function (k) { return func.INJECTIONS[k] })
       try {
-        injectionMembers = values.map(function (arg) {
+        injectionMembers = values.map(function (v) {
+          const arg = v.INJECTING_NAME || v
           if (resolvers && typeof resolvers[arg] === 'function') return resolvers[arg]()
           return locals[arg] || app.get(arg, locals)
         })
