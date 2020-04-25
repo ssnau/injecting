@@ -126,9 +126,18 @@ merge(Injecting.prototype, {
 
     // handle injected members
     var injectionMembers = []
-    var keys = Object.keys(func.INJECTIONS || {})
+    var staticInjections = {}
+    var clazz = func
+    var i = 0
+    while (true) {
+      Object.assign(staticInjections, clazz.INJECTIONS || {})
+      clazz = Object.getPrototypeOf(clazz)
+      if (!clazz) break
+      if (i++ > 5) break
+    }
+    var keys = Object.keys(staticInjections)
     if (keys.length) {
-      var values = keys.map(function (k) { return func.INJECTIONS[k] })
+      var values = keys.map(function (k) { return staticInjections[k] })
       try {
         injectionMembers = values.map(function (v) {
           const arg = v.INJECTING_NAME || v

@@ -716,6 +716,23 @@ describe('class with INJECTIONS', () => {
       age: 10,
       food: 'fish'
     })
+
+    // handle extends
+    class TestApp3 extends TestApp2 {
+
+    }
+    app.constant('cat', 'husky')
+    TestApp3.INJECTIONS = {
+      cat: 'cat'
+    }
+
+    const testApp3 = await app.invoke(TestApp3)
+    assert.deepStrictEqual(testApp3.getTestApp().hello(), {
+      name: 'jack',
+      age: 10,
+      food: 'fish'
+    })
+    assert.deepStrictEqual(testApp3.cat, 'husky')
   })
 })
 
