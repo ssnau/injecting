@@ -734,6 +734,28 @@ describe('class with INJECTIONS', () => {
     })
     assert.deepStrictEqual(testApp3.cat, 'husky')
   })
+
+  it('should handle extends', async () => {
+    app.constant('goodName', 'good')
+    app.constant('badName', 'bad')
+    app.constant('age', 10)
+
+    class A {
+      _getInjections () {
+        return { name: 'goodName' }
+      }
+    }
+    class B extends A {
+      _getInjections () {
+        return { name: 'badName', age: 'age' }
+      }
+    }
+
+    const b = await app.invoke(B)
+    // should use the closest definition!
+    assert.deepStrictEqual(b.name, 'bad')
+    assert.deepStrictEqual(b.age, 10)
+  })
 })
 
 describe('get fn', () => {

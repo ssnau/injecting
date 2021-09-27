@@ -130,7 +130,10 @@ merge(Injecting.prototype, {
     var clazz = func
     var i = 0
     while (true) {
-      Object.assign(staticInjections, clazz.INJECTIONS || {})
+      // for the reason that typescript cannot define static method
+      const __injections = clazz.prototype && clazz.prototype._getInjections &&
+            clazz.prototype._getInjections()
+      staticInjections = Object.assign(clazz.INJECTIONS || __injections || {}, staticInjections)
       clazz = Object.getPrototypeOf(clazz)
       if (!clazz) break
       if (i++ > 5) break
